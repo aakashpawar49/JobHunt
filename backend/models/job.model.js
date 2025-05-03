@@ -14,11 +14,13 @@ const jobSchema = new mongoose.Schema({
     }],
     salary: {
         type: Number,
-        required: true
+        required: true,
+        min: [0, 'Salary must be a positive number']
     },
-    experienceLevel:{
-        type:Number,
-        required:true,
+    experienceLevel: {
+        type: String,  // Could also use Number if you prefer numeric values
+        enum: ['Junior', 'Mid', 'Senior'],
+        required: true
     },
     location: {
         type: String,
@@ -26,7 +28,8 @@ const jobSchema = new mongoose.Schema({
     },
     jobType: {
         type: String,
-        required: true
+        required: true,
+        enum: ['Full-time', 'Part-time', 'Contract', 'Freelance']
     },
     position: {
         type: Number,
@@ -48,5 +51,11 @@ const jobSchema = new mongoose.Schema({
             ref: 'Application',
         }
     ]
-},{timestamps:true});
+}, { timestamps: true });
+
+// Indexes for optimization
+jobSchema.index({ company: 1 });
+jobSchema.index({ created_by: 1 });
+jobSchema.index({ applications: 1 });
+
 export const Job = mongoose.model("Job", jobSchema);

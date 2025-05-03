@@ -8,33 +8,43 @@ import companyRoute from "./routes/company.route.js";
 import jobRoute from "./routes/job.route.js";
 import applicationRoute from "./routes/application.route.js";
 
-dotenv.config({});
+
+dotenv.config();
 
 const app = express();
 
-// middleware
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// CORS configuration
 const corsOptions = {
-    origin:'http://localhost:5173',
-    credentials:true
-}
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',  // Default to local if not defined
+    credentials: true,
+};
 
 app.use(cors(corsOptions));
 
+if (!process.env.MONGO_URI) {
+    console.error("MONGO_URI environment variable is not set!");
+    process.exit(1);  
+}
+
 const PORT = process.env.PORT || 3000;
 
-
-// api's
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/company", companyRoute);
 app.use("/api/v1/job", jobRoute);
 app.use("/api/v1/application", applicationRoute);
 
-
-
-app.listen(PORT,()=>{
-    connectDB();
-    console.log(`Server running at port ${PORT}`);
-})
+connectDB()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server running at port ${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error("Error connecting to DB:", error);
+        process.exit(1);  // Exit the process if DB connection fails
+    });
