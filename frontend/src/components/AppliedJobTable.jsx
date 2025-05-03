@@ -1,10 +1,31 @@
-import React from 'react'
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
-import { Badge } from './ui/badge'
-import { useSelector } from 'react-redux'
+import React from 'react';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Badge } from './ui/badge';
+import { useSelector } from 'react-redux';
+// import { format } from 'date-fns'; 
 
 const AppliedJobTable = () => {
-    const {allAppliedJobs} = useSelector(store=>store.job);
+    const { allAppliedJobs } = useSelector((store) => store.job);
+
+    // Helper function to format date consistently
+    const formatDate = (dateString) => {
+        return format(new Date(dateString), 'MMM dd, yyyy'); // Format as 'Aug 15, 2025'
+    };
+
+    // Helper function to determine badge color
+    const getStatusBadgeColor = (status) => {
+        switch (status) {
+            case 'rejected':
+                return 'bg-red-400';
+            case 'pending':
+                return 'bg-gray-400';
+            case 'accepted':
+                return 'bg-green-400';
+            default:
+                return 'bg-gray-200';
+        }
+    };
+
     return (
         <div>
             <Table>
@@ -18,20 +39,30 @@ const AppliedJobTable = () => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {
-                        allAppliedJobs.length <= 0 ? <span>You haven't applied any job yet.</span> : allAppliedJobs.map((appliedJob) => (
+                    {allAppliedJobs.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={4} className="text-center">
+                                You haven't applied to any jobs yet.
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        allAppliedJobs.map((appliedJob) => (
                             <TableRow key={appliedJob._id}>
-                                <TableCell>{appliedJob?.createdAt?.split("T")[0]}</TableCell>
+                                <TableCell>{formatDate(appliedJob?.createdAt)}</TableCell>
                                 <TableCell>{appliedJob.job?.title}</TableCell>
                                 <TableCell>{appliedJob.job?.company?.name}</TableCell>
-                                <TableCell className="text-right"><Badge className={`${appliedJob?.status === "rejected" ? 'bg-red-400' : appliedJob.status === 'pending' ? 'bg-gray-400' : 'bg-green-400'}`}>{appliedJob.status.toUpperCase()}</Badge></TableCell>
+                                <TableCell className="text-right">
+                                    <Badge className={getStatusBadgeColor(appliedJob?.status)}>
+                                        {appliedJob.status.toUpperCase()}
+                                    </Badge>
+                                </TableCell>
                             </TableRow>
                         ))
-                    }
+                    )}
                 </TableBody>
             </Table>
         </div>
-    )
-}
+    );
+};
 
-export default AppliedJobTable
+export default AppliedJobTable;

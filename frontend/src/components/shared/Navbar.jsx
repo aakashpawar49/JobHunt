@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
 import { Avatar, AvatarImage } from '../ui/avatar'
@@ -14,8 +14,10 @@ const Navbar = () => {
     const { user } = useSelector(store => store.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     const logoutHandler = async () => {
+        setLoading(true);
         try {
             const res = await axios.get(`${USER_API_END_POINT}/logout`, { withCredentials: true });
             if (res.data.success) {
@@ -26,8 +28,11 @@ const Navbar = () => {
         } catch (error) {
             console.log(error);
             toast.error(error.response.data.message);
+        } finally {
+            setLoading(false);
         }
     }
+
     return (
         <div className='bg-white'>
             <div className='flex items-center justify-between mx-auto max-w-7xl h-16'>
@@ -50,8 +55,6 @@ const Navbar = () => {
                                 </>
                             )
                         }
-
-
                     </ul>
                     {
                         !user ? (
@@ -63,14 +66,14 @@ const Navbar = () => {
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Avatar className="cursor-pointer">
-                                        <AvatarImage src={user?.profile?.profilePhoto} alt="@shadcn" />
+                                        <AvatarImage className="w-10 h-10" src={user?.profile?.profilePhoto} alt="@shadcn" />
                                     </Avatar>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-80">
+                                <PopoverContent className="w-80 max-w-xs">
                                     <div className=''>
                                         <div className='flex gap-2 space-y-2'>
                                             <Avatar className="cursor-pointer">
-                                                <AvatarImage src={user?.profile?.profilePhoto} alt="@shadcn" />
+                                                <AvatarImage className="w-10 h-10" src={user?.profile?.profilePhoto} alt="@shadcn" />
                                             </Avatar>
                                             <div>
                                                 <h4 className='font-medium'>{user?.fullname}</h4>
@@ -89,7 +92,9 @@ const Navbar = () => {
 
                                             <div className='flex w-fit items-center gap-2 cursor-pointer'>
                                                 <LogOut />
-                                                <Button onClick={logoutHandler} variant="link">Logout</Button>
+                                                <Button onClick={logoutHandler} variant="link" disabled={loading}>
+                                                    {loading ? 'Logging Out...' : 'Logout'}
+                                                </Button>
                                             </div>
                                         </div>
                                     </div>
@@ -97,10 +102,8 @@ const Navbar = () => {
                             </Popover>
                         )
                     }
-
                 </div>
             </div>
-
         </div>
     )
 }

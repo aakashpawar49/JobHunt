@@ -19,9 +19,10 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
         email: user?.email || "",
         phoneNumber: user?.phoneNumber || "",
         bio: user?.profile?.bio || "",
-        skills: user?.profile?.skills?.map(skill => skill) || "",
+        skills: user?.profile?.skills?.join(', ') || "", // Skills as a comma-separated string
         file: user?.profile?.resume || ""
     });
+    const [error, setError] = useState('');
     const dispatch = useDispatch();
 
     const changeEventHandler = (e) => {
@@ -30,20 +31,33 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
 
     const fileChangeHandler = (e) => {
         const file = e.target.files?.[0];
-        setInput({ ...input, file })
+        setInput({ ...input, file });
+    }
+
+    const validateForm = () => {
+        if (!input.fullname || !input.email || !input.phoneNumber) {
+            setError('Name, email, and phone number are required!');
+            return false;
+        }
+        setError('');
+        return true;
     }
 
     const submitHandler = async (e) => {
         e.preventDefault();
+        if (!validateForm()) return; // Prevent submission if form is invalid
+
         const formData = new FormData();
         formData.append("fullname", input.fullname);
         formData.append("email", input.email);
         formData.append("phoneNumber", input.phoneNumber);
         formData.append("bio", input.bio);
-        formData.append("skills", input.skills);
+        formData.append("skills", input.skills.split(',').map(skill => skill.trim())); // Convert skills into an array
+
         if (input.file) {
             formData.append("file", input.file);
         }
+
         try {
             setLoading(true);
             const res = await axios.post(`${USER_API_END_POINT}/profile/update`, formData, {
@@ -52,104 +66,103 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                 },
                 withCredentials: true
             });
+
             if (res.data.success) {
                 dispatch(setUser(res.data.user));
                 toast.success(res.data.message);
             }
         } catch (error) {
             console.log(error);
-            toast.error(error.response.data.message);
-        } finally{
+            toast.error(error.response?.data?.message || 'Something went wrong!');
+        } finally {
             setLoading(false);
         }
         setOpen(false);
-        console.log(input);
     }
 
-
-
     return (
-        <div>
-            <Dialog open={open}>
-                <DialogContent className="sm:max-w-[425px]" onInteractOutside={() => setOpen(false)}>
-                    <DialogHeader>
-                        <DialogTitle>Update Profile</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={submitHandler}>
-                        <div className='grid gap-4 py-4'>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="name" className="text-right">Name</Label>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    value={input.fullname}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="email" className="text-right">Email</Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value={input.email}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="number" className="text-right">Number</Label>
-                                <Input
-                                    id="number"
-                                    name="number"
-                                    value={input.phoneNumber}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="bio" className="text-right">Bio</Label>
-                                <Input
-                                    id="bio"
-                                    name="bio"
-                                    value={input.bio}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="skills" className="text-right">Skills</Label>
-                                <Input
-                                    id="skills"
-                                    name="skills"
-                                    value={input.skills}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="file" className="text-right">Resume</Label>
-                                <Input
-                                    id="file"
-                                    name="file"
-                                    type="file"
-                                    accept="application/pdf"
-                                    onChange={fileChangeHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
+        <Dialog open={open}>
+            <DialogContent className="sm:max-w-[425px]" onInteractOutside={() => setOpen(false)}>
+                <DialogHeader>
+                    <DialogTitle>Update Profile</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={submitHandler}>
+                    <div className='grid gap-4 py-4'>
+                        <div className='grid grid-cols-4 items-center gap-4'>
+                            <Label htmlFor="fullname" className="text-right">Name</Label>
+                            <Input
+                                id="fullname"
+                                name="fullname"
+                                type="text"
+                                value={input.fullname}
+                                onChange={changeEventHandler}
+                                className="col-span-3"
+                            />
                         </div>
-                        <DialogFooter>
-                            {
-                                loading ? <Button className="w-full my-4"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> : <Button type="submit" className="w-full my-4">Update</Button>
-                            }
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        </div>
+                        <div className='grid grid-cols-4 items-center gap-4'>
+                            <Label htmlFor="email" className="text-right">Email</Label>
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={input.email}
+                                onChange={changeEventHandler}
+                                className="col-span-3"
+                            />
+                        </div>
+                        <div className='grid grid-cols-4 items-center gap-4'>
+                            <Label htmlFor="phoneNumber" className="text-right">Phone Number</Label>
+                            <Input
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                value={input.phoneNumber}
+                                onChange={changeEventHandler}
+                                className="col-span-3"
+                            />
+                        </div>
+                        <div className='grid grid-cols-4 items-center gap-4'>
+                            <Label htmlFor="bio" className="text-right">Bio</Label>
+                            <Input
+                                id="bio"
+                                name="bio"
+                                value={input.bio}
+                                onChange={changeEventHandler}
+                                className="col-span-3"
+                            />
+                        </div>
+                        <div className='grid grid-cols-4 items-center gap-4'>
+                            <Label htmlFor="skills" className="text-right">Skills</Label>
+                            <Input
+                                id="skills"
+                                name="skills"
+                                value={input.skills}
+                                onChange={changeEventHandler}
+                                className="col-span-3"
+                                placeholder="e.g. JavaScript, React"
+                            />
+                        </div>
+                        <div className='grid grid-cols-4 items-center gap-4'>
+                            <Label htmlFor="file" className="text-right">Resume</Label>
+                            <Input
+                                id="file"
+                                name="file"
+                                type="file"
+                                accept="application/pdf"
+                                onChange={fileChangeHandler}
+                                className="col-span-3"
+                            />
+                        </div>
+                    </div>
+                    {error && <div className="text-red-500 text-sm">{error}</div>}
+                    <DialogFooter>
+                        {
+                            loading ? <Button className="w-full my-4"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> : 
+                            <Button type="submit" className="w-full my-4">Update</Button>
+                        }
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     )
 }
 

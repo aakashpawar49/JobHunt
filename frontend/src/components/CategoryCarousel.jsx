@@ -11,35 +11,40 @@ const category = [
     "Data Science",
     "Graphic Designer",
     "FullStack Developer"
-]
+];
 
 const CategoryCarousel = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
     const searchJobHandler = (query) => {
         dispatch(setSearchedQuery(query));
-        navigate("/browse");
-    }
+        // Passing the search query as a URL parameter for better state persistence
+        navigate(`/browse?search=${query}`);
+    };
 
     return (
-        <div>
-            <Carousel className="w-full max-w-xl mx-auto my-20">
+        <div className="w-full max-w-xl mx-auto my-20">
+            <Carousel>
                 <CarouselContent>
-                    {
-                        category.map((cat, index) => (
-                            <CarouselItem key={cat} className="md:basis-1/2 lg-basis-1/3">
-                                <Button onClick={()=>searchJobHandler(cat)} variant="outline" className="rounded-full">
-                                    {cat}
-                                </Button>
-                            </CarouselItem>
-                        ))
-                    }
+                    {category.map((cat) => (
+                        <CarouselItem key={cat} className="md:basis-1/2 lg:basis-1/3">
+                            <Button 
+                                onClick={() => searchJobHandler(cat)} 
+                                variant="outline" 
+                                className="rounded-full w-full text-center"
+                                aria-label={`Search for ${cat} jobs`}
+                            >
+                                {cat}
+                            </Button>
+                        </CarouselItem>
+                    ))}
                 </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
+                <CarouselPrevious aria-label="Previous Category" />
+                <CarouselNext aria-label="Next Category" />
             </Carousel>
         </div>
-    )
-}
+    );
+};
 
-export default CategoryCarousel
+export default CategoryCarousel;
